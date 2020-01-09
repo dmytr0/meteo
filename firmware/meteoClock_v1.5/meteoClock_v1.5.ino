@@ -18,7 +18,7 @@
 
 #define DEBUG 0             // вывод на дисплей лог инициализации датчиков при запуске. Для дисплея 1602 не работает! Но дублируется через порт!
 #define CO2_SENSOR 1        // включить или выключить поддержку/вывод с датчика СО2 (1 вкл, 0 выкл)
-#define DISPLAY_TYPE 1      // тип дисплея: 1 - 2004 (большой), 0 - 1602 (маленький)
+#define DISPLAY_TYPE 0      // тип дисплея: 1 - 2004 (большой LCD), 0 - TFT 1.44 (маленький)
 #define DISPLAY_ADDR 0x27   // адрес платы дисплея: 0x27 или 0x3f. Если дисплей не работает - смени адрес! На самом дисплее адрес не указан
 
 
@@ -29,23 +29,62 @@
 // если дисплей не заводится - поменяйте адрес (строка 54)
 
 // пины
-#define BACKLIGHT 10     // пин подсветки дисплея
-#define PHOTO A3         // пин фоторезистора
-
 #define MHZ_RX 2
 #define MHZ_TX 3
+#define PHOTO A3           // пин фоторезистора
 
-#define LED_COM 7
-#define LED_R 9
-#define LED_G 6
-#define LED_B 5
-#define BTN_PIN 4
+#if (DISPLAY_TYPE == 1)
+  #define BACKLIGHT 10     // пин подсветки дисплея
+          
+  #define LED_COM 7
+  #define LED_R 9
+  #define LED_G 6
+  #define LED_B 5
+  #define BTN_PIN 4
+
+#else
+  #define BACKLIGHT 10     // пин подсветки дисплея
+  #define __CS 10
+  #define __DC 7
+  #define __RES 8
+
+  //пины для 74HC595
+  #define L_L A0           //защелка           12 ST_CP 
+  #define L_D A1           //вход данных       14 DS       
+  #define L_C A2           //тактирование      11 SH_CP 
+  #define L_PWM 6          //яркость (шим пин) 13 OE       
+#endif
+
+#if (DISPLAY_TYPE == 0)
+  //разметка 
+  #define CO2_y 30
+  #define T_y 55
+  #define H_y 80
+  #define R_y 105
+
+  //цвета
+  #define GREEN   0x07E0
+  #define CYAN    0x07FF
+  #define BLUE    0x001F
+  #define RED     0xF800
+  #define YELLOW  0xFFE0  
+  #define WHITE   0xFFFF
+  
+#endif
 
 // библиотеки
 #include <Wire.h>
-#include <LiquidCrystal_I2C.h>
 
-LiquidCrystal_I2C lcd(DISPLAY_ADDR, 20, 4);
+#if (DISPLAY_TYPE == 1)
+  #include <LiquidCrystal_I2C.h>
+
+  LiquidCrystal_I2C lcd(DISPLAY_ADDR, 20, 4);
+#else
+  #include <Adafruit_GFX.h>
+  #include <TFT_ILI9163C.h>
+
+  TFT_ILI9163C display = TFT_ILI9163C(__CS, __DC, __RES);
+#endif
 
 #include "RTClib.h"
 RTC_DS3231 rtc;
@@ -71,10 +110,11 @@ GTimer_ms brightTimer(2000);
 #include "GyverButton.h"
 GButton button(BTN_PIN, LOW_PULL, NORM_OPEN);
 
-int8_t hrs, mins, secs;
 byte LED_CURRENT_BRIGHTNESS = 0;
 
 // переменные для вывода
+int8_t hrs, mins, secs;
+
 float dispTemp;
 byte dispHum;
 int dispPres;
@@ -82,6 +122,7 @@ int dispCO2;
 int dispRain;
 
 // массивы графиков
+/*
 int tempHour[15], tempDay[15];
 int humHour[15], humDay[15];
 int pressHour[15], pressDay[15];
@@ -91,6 +132,7 @@ uint32_t pressure_array[6];
 uint32_t sumX, sumY, sumX2, sumXY;
 float a, b;
 byte time_array[6];
+*/
 
 
 static const char *dayNames[]  = {
@@ -161,6 +203,9 @@ void setOneLed(byte pinNumber, byte value) {
   value = map(value, 0, 255, 0, LED_CURRENT_BRIGHTNESS);
   analogWrite(pinNumber, value);
 }
+
+
+///////////////////////// SETUP //////////////////////////
 
 
 void setup() {
@@ -286,12 +331,19 @@ void setup() {
   drawSensors();
 }
 
-void loop() {
-if (brightTimer.isReady()) checkBrightness(); // яркость
-if (sensorsTimer.isReady()) readSensors();    // читаем показания датчиков с периодом SENS_TIME
-if (clockTimer.isReady()) clockTick();           // раз в секунду пересчитываем время и мигаем точками
-if (predictTimer.isReady()) rainPredict();      // 10 minutes timer for predict rain
-if (drawSensorsTimer.isReady()) drawSensors();  // обновляем показания датчиков на дисплее с периодом SENS_TIME
+///////////////////////// END SETUP //////////////////////////
 
-modesTick();                                    // тут ловим нажатия на кнопку и переключаем режимы
+///////////////////////// LOOP //////////////////////////
+
+void loop() {
+  if (brightTimer.isReady()) checkBrightness(); // яркость
+  if (sensorsTimer.isReady()) readSensors();    // читаем показания датчиков с периодом SENS_TIME
+  if (clockTimer.isReady()) clockTick();           // раз в секунду пересчитываем время и мигаем точками
+  if (predictTimer.isReady()) rainPredict();      // 10 minutes timer for predict rain
+  if (drawSensorsTimer.isReady()) drawSensors();  // обновляем показания датчиков на дисплее с периодом SENS_TIME
+
+  modesTick();                                    // тут ловим нажатия на кнопку и переключаем режимы
+
 }
+
+///////////////////////// END LOOP //////////////////////////
