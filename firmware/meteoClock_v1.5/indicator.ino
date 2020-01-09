@@ -24,7 +24,7 @@
   void setIndicatorCO2(int ppm) {
     
     digitalWrite(L_L, LOW);                        // устанавливаем синхронизацию "защелки" на LOW
-    shiftOut(L_D, L_C, L_DIRECTION, B01001100);   // передаем последовательно на dataPin
+    shiftOut(L_D, L_C, L_DIRECTION, B00011111);   // передаем последовательно на dataPin
     digitalWrite(L_L, HIGH);                       //"защелкиваем" регистр, тем самым устанавливая значения на выходах
 
   }
