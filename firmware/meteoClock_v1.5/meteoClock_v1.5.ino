@@ -21,6 +21,8 @@
 #define DISPLAY_TYPE 0      // тип дисплея: 1 - 2004 (большой LCD), 0 - TFT 1.44 (маленький)
 #define DISPLAY_ADDR 0x27   // адрес платы дисплея: 0x27 или 0x3f. Если дисплей не работает - смени адрес! На самом дисплее адрес не указан
 
+#define INVERT_LEVEL 0      // инвертировать показания индикатора
+
 
 // адрес BME280 жёстко задан в файле библиотеки Adafruit_BME280.h
 // стоковый адрес был 0x77, у китайского модуля адрес 0x76.
@@ -43,7 +45,7 @@
   #define BTN_PIN 4
 
 #else
-  #define BACKLIGHT 10     // пин подсветки дисплея
+  #define BACKLIGHT 9     // пин подсветки дисплея
   #define __CS 10
   #define __DC 7
   #define __RES 8
@@ -70,6 +72,12 @@
   #define YELLOW  0xFFE0  
   #define WHITE   0xFFFF
   
+#endif
+
+#if (INVERT_LEVEL = 0)
+  #define L_DIRECTION LSBFIRST
+#else
+  #define L_DIRECTION MSBFIRST
 #endif
 
 // библиотеки
@@ -140,18 +148,26 @@ void setup() {
   Serial.begin(9600);
 
   pinMode(BACKLIGHT, OUTPUT);
-  pinMode(LED_COM, OUTPUT);
-  pinMode(LED_R, OUTPUT);
-  pinMode(LED_G, OUTPUT);
-  pinMode(LED_B, OUTPUT);
-  setLEDinRGB(0, 0, 0);
+  #if (DISPLAY_TYPE == 1)
+    pinMode(LED_COM, OUTPUT);
+    pinMode(LED_R, OUTPUT);
+    pinMode(LED_G, OUTPUT);
+    pinMode(LED_B, OUTPUT);
+    setLEDinRGB(0, 0, 0);
 
-  digitalWrite(LED_COM, LED_MODE);
-  analogWrite(BACKLIGHT, LCD_BRIGHT_MAX);
+    digitalWrite(LED_COM, LED_MODE);
+    analogWrite(BACKLIGHT, LCD_BRIGHT_MAX);
+    lcd.init();
+    lcd.backlight();
+    lcd.clear();
+  #else
+    
+    pinMode(L_L, OUTPUT);
+    pinMode(L_C, OUTPUT);
+    pinMode(L_D, OUTPUT);
 
-  lcd.init();
-  lcd.backlight();
-  lcd.clear();
+  #endif
+
 
 #if (DEBUG == 1)
   boolean status = true;

@@ -21,7 +21,7 @@
 #define DISPLAY_LED_PIN 6
 
 #define __CS 10
-#define __DC 9
+#define __DC 7
 #define __RES 8
 
 TFT_ILI9163C display = TFT_ILI9163C(__CS, __DC, __RES);
@@ -152,3 +152,15 @@ void loop() {
   draw();
 
 }
+
+
+
+
+/*
+
+  pinMode(A0, OUTPUT);
+  digitalWrite(A0, HIGH);
+
+*/
+
+
