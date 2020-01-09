@@ -121,19 +121,6 @@ int dispPres;
 int dispCO2;
 int dispRain;
 
-// массивы графиков
-/*
-int tempHour[15], tempDay[15];
-int humHour[15], humDay[15];
-int pressHour[15], pressDay[15];
-int co2Hour[15], co2Day[15];
-int delta;
-uint32_t pressure_array[6];
-uint32_t sumX, sumY, sumX2, sumXY;
-float a, b;
-byte time_array[6];
-*/
-
 
 static const char *dayNames[]  = {
   "Sun",
@@ -144,65 +131,6 @@ static const char *dayNames[]  = {
   "Fri",
   "Sat",
 };
-
-void drawData() {
-  int dayofweek = now.dayOfTheWeek();
-  lcd.setCursor(10, 0);
-  lcd.print(dayNames[dayofweek]);
-  lcd.print("  ");
-
-  if (now.day() < 10) lcd.print(0);
-  lcd.print(now.day());
-  lcd.print(".");
-  if (now.month() < 10) lcd.print(0);
-  lcd.print(now.month());
- 
-}
-
-void drawClock() {
-  boolean dotState = (secs % 2) == 0;
-  
-  lcd.setCursor(0, 0);
-  if(hrs < 10) lcd.print(0);
-  lcd.print(hrs); 
-  
-  if(dotState) lcd.print(":");
-  else lcd.print(" ");
-
-  if(mins < 10) lcd.print(0);
-  lcd.print(mins);
-
-  if(dotState) lcd.print(":");
-  else lcd.print(" ");
-  
-  if(secs < 10) lcd.print(0);
-  lcd.print(secs);
-}
-
-
-
-
-void calculateAndSetLedCO2(int ppm) {
-  int red = constrain(ppm, 800, 1000);
-  red = map(red, 800, 1000, 0, 255);
-
-  int green = constrain(ppm, 1000, 1200);
-  green = map(green, 1000, 1200, 255, 0);
-
-  setLEDinRGB(red, green, 0);
-}
-
-void setLEDinRGB(byte R, byte G, byte B) {
-  setOneLed(LED_R, R);
-  setOneLed(LED_G, G);
-  setOneLed(LED_B, B);
-}
-
-void setOneLed(byte pinNumber, byte value) {
-  value = constrain(value, 0, 255);
-  value = map(value, 0, 255, 0, LED_CURRENT_BRIGHTNESS);
-  analogWrite(pinNumber, value);
-}
 
 
 ///////////////////////// SETUP //////////////////////////

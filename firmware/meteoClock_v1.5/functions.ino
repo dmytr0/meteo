@@ -94,7 +94,7 @@ void readSensors() {
   dispPres = (float)bme.readPressure() * 0.00750062;
 #if (CO2_SENSOR == 1)
   dispCO2 = mhz19.getPPM();
-  calculateAndSetLedCO2(dispCO2);
+  setIndicatorCO2(dispCO2);
 #endif
 }
 
