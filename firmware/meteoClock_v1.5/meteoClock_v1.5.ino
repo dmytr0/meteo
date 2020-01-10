@@ -1,27 +1,26 @@
 
 
 // ------------------------- НАСТРОЙКИ --------------------
-#define RESET_CLOCK 0       // сброс часов на время загрузки прошивки (для модуля с несъёмной батарейкой). Не забудь поставить 0 и прошить ещё раз!
-#define SENS_TIME 30000     // время обновления показаний сенсоров на экране, миллисекунд
-#define LED_MODE 0          // тип RGB светодиода: 0 - главный катод, 1 - главный анод
+#define RESET_CLOCK 0           // сброс часов на время загрузки прошивки (для модуля с несъёмной батарейкой). Не забудь поставить 0 и прошить ещё раз!
+#define SENS_TIME 30000         // время обновления показаний сенсоров на экране, миллисекунд
+#define LED_MODE 0              // тип RGB светодиода: 0 - главный катод, 1 - главный анод
 
 // управление яркостью
 #define HOURS_BRIGHT_CONTROL 1  // 0/1 - запретить/разрешить управление яркостью по времения 
 #define RISE_HOUR 7             // час включения подсветки дисплея
 #define HOUR_TO_SLEEP 22        // час выключения подсветки дисплея
+
 #define BRIGHT_CONTROL 0        // 0/1 - запретить/разрешить управление яркостью по датчику освещенности (при отключении яркость всегда будет макс.)
 #define BRIGHT_THRESHOLD 255    // величина сигнала, ниже которой яркость переключится на минимум (0-1023)
-#define LED_BRIGHT_MAX 255      // макс яркость светодиода СО2 (0 - 255)
-#define LED_BRIGHT_MIN 0        // мин яркость светодиода СО2 (0 - 255)
-#define LCD_BRIGHT_MAX 200      // макс яркость подсветки дисплея (0 - 255)
-#define LCD_BRIGHT_MIN 0        // мин яркость подсветки дисплея (0 - 255)
 
-#define DEBUG 0             // вывод на дисплей лог инициализации датчиков при запуске. Для дисплея 1602 не работает! Но дублируется через порт!
-#define CO2_SENSOR 1        // включить или выключить поддержку/вывод с датчика СО2 (1 вкл, 0 выкл)
-#define DISPLAY_TYPE 0      // тип дисплея: 1 - 2004 (большой LCD), 0 - TFT 1.44 (маленький)
-#define DISPLAY_ADDR 0x27   // адрес платы дисплея: 0x27 или 0x3f. Если дисплей не работает - смени адрес! На самом дисплее адрес не указан
+#define BRIGHT_MAX 200          // макс яркость светодиода/индикатора и дисплея (0 - 255)
 
-#define INVERT_LEVEL 0      // инвертировать показания индикатора
+#define DEBUG 0                 // вывод на дисплей лог инициализации датчиков при запуске. Для дисплея 1602 не работает! Но дублируется через порт!
+#define CO2_SENSOR 1            // включить или выключить поддержку/вывод с датчика СО2 (1 вкл, 0 выкл)
+#define DISPLAY_TYPE 0          // тип дисплея: 1 - 2004 (большой LCD), 0 - TFT 1.44 (маленький)
+#define DISPLAY_ADDR 0x27       // адрес платы дисплея: 0x27 или 0x3f. Если дисплей не работает - смени адрес! На самом дисплее адрес не указан
+    
+#define INVERT_LEVEL 0          // инвертировать показания индикатора
 
 
 // адрес BME280 жёстко задан в файле библиотеки Adafruit_BME280.h
@@ -33,10 +32,10 @@
 // пины
 #define MHZ_RX 2
 #define MHZ_TX 3
-#define PHOTO A3           // пин фоторезистора
+#define PHOTO A3                  // пин фоторезистора
 
 #if (DISPLAY_TYPE == 1)
-  #define BACKLIGHT 10     // пин подсветки дисплея
+  #define BACKLIGHT 10            // пин подсветки дисплея
           
   #define LED_COM 7
   #define LED_R 9
@@ -45,7 +44,7 @@
   #define BTN_PIN 4
 
 #else
-  #define BACKLIGHT 9     // пин подсветки дисплея
+  #define BACKLIGHT 9             // пин подсветки дисплея
   #define __CS 10
   #define __DC 7
   #define __RES 8
@@ -129,6 +128,9 @@ int dispPres;
 int dispCO2;
 int dispRain;
 
+uint32_t pressure_array[6];  //массив для прогноза
+byte time_array[6];
+
 
 static const char *dayNames[]  = {
   "Sun",
@@ -156,7 +158,7 @@ void setup() {
     setLEDinRGB(0, 0, 0);
 
     digitalWrite(LED_COM, LED_MODE);
-    analogWrite(BACKLIGHT, LCD_BRIGHT_MAX);
+    analogWrite(BACKLIGHT, BRIGHT_MAX);
     lcd.init();
     lcd.backlight();
     lcd.clear();
@@ -165,6 +167,7 @@ void setup() {
     pinMode(L_L, OUTPUT);
     pinMode(L_C, OUTPUT);
     pinMode(L_D, OUTPUT);
+    pinMode(L_PWM, OUTPUT);
 
   #endif
 
@@ -172,63 +175,68 @@ void setup() {
 #if (DEBUG == 1)
   boolean status = true;
 
+  #if (DISPLAY_TYPE == 0)
   setLEDinRGB(255, 0, 0);
+  #endif
 
-#if (CO2_SENSOR == 1)
-  lcd.setCursor(0, 0);
-  lcd.print(F("MHZ-19... "));
-  Serial.print(F("MHZ-19... "));
-  mhz19.begin(MHZ_TX, MHZ_RX);
-  mhz19.setAutoCalibration(false);
-  mhz19.getStatus();    // первый запрос, в любом случае возвращает -1
-  delay(500);
-  if (mhz19.getStatus() == 0) {
-    lcd.print(F("OK"));
-    Serial.println(F("OK"));
-  } else {
-    lcd.print(F("ERROR"));
-    Serial.println(F("ERROR"));
-    status = false;
-  }
-#endif
+  #if (CO2_SENSOR == 1)
+  
+    Serial.print(F("MHZ-19... "));
+    mhz19.begin(MHZ_TX, MHZ_RX);
+    mhz19.setAutoCalibration(false);
+    mhz19.getStatus();    // первый запрос, в любом случае возвращает -1
+    delay(500);
+    if (mhz19.getStatus() == 0) {
+      printDebugMhz("OK");
+      Serial.println(F("OK"));
+    } else {
+      printDebugMhz("ERROR");
+      Serial.println(F("ERROR"));
+      status = false;
+    }
+  #endif
 
+  #if (DISPLAY_TYPE == 0)
   setLEDinRGB(0, 255, 0);
-  lcd.setCursor(0, 1);
-  lcd.print(F("RTC... "));
-  Serial.print(F("RTC... "));
+  #endif
+
   delay(50);
   if (rtc.begin()) {
-    lcd.print(F("OK"));
+    printDebugRtc("OK");
     Serial.println(F("OK"));
   } else {
-    lcd.print(F("ERROR"));
+    printDebugRtc("ERROR");
     Serial.println(F("ERROR"));
     status = false;
   }
 
+  #if (DISPLAY_TYPE == 0)
   setLEDinRGB(0, 0, 255);
-  lcd.setCursor(0, 2);
-  lcd.print(F("BME280... "));
-  Serial.print(F("BME280... "));
+  #endif
+  
   delay(50);
   if (bme.begin(&Wire)) {
-    lcd.print(F("OK"));
-    Serial.println(F("OK"));
+    printDebugBme("OK");
   } else {
-    lcd.print(F("ERROR"));
-    Serial.println(F("ERROR"));
+    printDebugBme("ERROR");
     status = false;
   }
 
-  setLEDinRGB(0, 0, 0);
-  lcd.setCursor(0, 3);
+  #if (DISPLAY_TYPE == 0)
+  setLEDinRGB(255, 255, 255);
+  #endif
+  
   if (status) {
-    lcd.print(F("All good"));
-    Serial.println(F("All good"));
+    printDebugFinal("All good");
   } else {
-    lcd.print(F("Upss...!"));
-    Serial.println(F("Check wires!"));
+    printDebugFinal("ERROR...!");
   }
+  delay(2000);
+
+  #if (DISPLAY_TYPE == 0)
+  setLEDinRGB(0, 0, 0);
+  #endif
+  
   while (1) {
     lcd.setCursor(14, 1);
     lcd.print("P:    ");
@@ -239,10 +247,11 @@ void setup() {
   }
 #else
 
-#if (CO2_SENSOR == 1)
-  mhz19.begin(MHZ_TX, MHZ_RX);
-  mhz19.setAutoCalibration(false);
-#endif
+  #if (CO2_SENSOR == 1)
+    mhz19.begin(MHZ_TX, MHZ_RX);
+    mhz19.setAutoCalibration(false);
+  #endif
+
   rtc.begin();
   bme.begin(&Wire);
 #endif

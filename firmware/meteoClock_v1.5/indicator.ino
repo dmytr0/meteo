@@ -22,10 +22,34 @@
   }
 #else
   void setIndicatorCO2(int ppm) {
-    
-    digitalWrite(L_L, LOW);                        // устанавливаем синхронизацию "защелки" на LOW
-    shiftOut(L_D, L_C, L_DIRECTION, B00011111);   // передаем последовательно на dataPin
-    digitalWrite(L_L, HIGH);                       //"защелкиваем" регистр, тем самым устанавливая значения на выходах
 
+    int level = defineLevel(ppm);
+    digitalWrite(L_L, LOW);                        // устанавливаем синхронизацию "защелки" на LOW
+    shiftOut(L_D, L_C, L_DIRECTION, level);        // передаем последовательно на dataPin
+    digitalWrite(L_L, HIGH);                       //"защелкиваем" регистр, тем самым устанавливая значения на выходах
+    
+  }
+
+  int defineLevel(int ppm) {
+   
+    if(ppm <= 400) {
+      return 0;
+    } else if(ppm <= 650) {
+      return 1;
+    } else if(ppm <= 800) {
+      return 3;
+    } else if(ppm <= 1000) {
+      return 7;
+    } else if(ppm <= 1100) {
+      return 15;
+    } else if(ppm <= 1200) {
+      return 31;
+    } else if(ppm <= 1500) {
+      return 63;
+    } else if(ppm <= 2000) {
+      return 127;
+    }
+      
+    return 255;
   }
 #endif

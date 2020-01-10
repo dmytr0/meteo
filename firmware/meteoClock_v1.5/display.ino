@@ -32,3 +32,58 @@ void drawClock() {
   if(secs < 10) lcd.print(0);
   lcd.print(secs);
 }
+
+
+void printDebugMhz(String stat) {
+  String message = "MHZ-19... " + stat;
+
+  Serial.println(F(message));
+
+  #if (DISPLAY_TYPE == 0)
+    lcd.setCursor(0, 0);
+    lcd.print(F(message));
+  #else
+    display.setCursor(1,1);
+    display.println(message);
+  #endif
+}
+
+void printDebugRtc(String stat) {
+  String message = "RTC... " + stat;
+
+  Serial.println(F(message));
+
+  #if (DISPLAY_TYPE == 0)
+    lcd.setCursor(0, 1);
+    lcd.print(F(message));
+  #else
+    display.println(message);
+  #endif
+}
+
+void printDebugBme(String stat) {
+  String message = "BME280... " + stat;
+
+  Serial.println(F(message));
+
+  #if (DISPLAY_TYPE == 0)
+    lcd.setCursor(0, 2);
+    lcd.print(F(message));
+  #else
+    display.println(message);
+  #endif
+}
+
+void printDebugFinal(String stat) {
+  String message = stat;
+
+  Serial.println(F(message));
+
+  #if (DISPLAY_TYPE == 0)
+    lcd.setCursor(0, 2);
+    lcd.print(F(message));
+  #else
+    display.println(message);
+  #endif
+}
+
