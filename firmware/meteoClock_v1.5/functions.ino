@@ -1,10 +1,10 @@
 void checkBrightness() {
   #if(BRIGHT_CONTROL == 1) 
       if (analogRead(PHOTO) < BRIGHT_THRESHOLD) {   // если темно
-        analogWrite(BACKLIGHT, LCD_BRIGHT_MIN);
+        analogWrite(BACKLIGHT, BRIGHT_MIN);
           switchLedBrightness(false);
         } else {                                      // если светло
-        analogWrite(BACKLIGHT, LCD_BRIGHT_MAX);
+        analogWrite(BACKLIGHT, BRIGHT_MAX);
           switchLedBrightness(true);
       }
   #endif
@@ -39,24 +39,24 @@ int defineBrightness() {
       return map(mins, 0, 60, 0, 255);
     }
     
-    return LCD_BRIGHT_MAX;
+    return BRIGHT_MAX;
   } else if((hrs < RISE_HOUR || hrs >= HOUR_TO_SLEEP)) {
     if (hrs == HOUR_TO_SLEEP) {
       return map(mins, 0, 60, 255, 0);
     }
-    return LCD_BRIGHT_MIN;
+    return BRIGHT_MIN;
   }
 }
 
 void switchLedBrightness(boolean isOn) {
   if(isOn){
-    setLedBrightness(LED_BRIGHT_MAX);
+    setLedBrightness(BRIGHT_MAX);
   } else {
-    setLedBrightness(LED_BRIGHT_MIN);
+    setLedBrightness(BRIGHT_MIN);
     #if (LED_MODE == 0)
-        LED_CURRENT_BRIGHTNESS = (LED_BRIGHT_MIN);
+        LED_CURRENT_BRIGHTNESS = (BRIGHT_MIN);
     #else
-        LED_CURRENT_BRIGHTNESS = (255 - LED_BRIGHT_MIN);
+        LED_CURRENT_BRIGHTNESS = (255 - BRIGHT_MIN);
     #endif
   }
 }
@@ -74,7 +74,7 @@ void modesTick() {
   button.tick();
   if (button.isClick()) {
 
-    if ((LED_MODE == 0 && LED_CURRENT_BRIGHTNESS == LED_BRIGHT_MIN) || (LED_MODE == 1 && LED_CURRENT_BRIGHTNESS == (255 - LED_BRIGHT_MIN))){
+    if ((LED_MODE == 0 && LED_CURRENT_BRIGHTNESS == BRIGHT_MIN) || (LED_MODE == 1 && LED_CURRENT_BRIGHTNESS == (255 - BRIGHT_MIN))){
         switchLedBrightness(true);
     }
     else {
@@ -98,40 +98,6 @@ void readSensors() {
 #endif
 }
 
-void drawSensors() {
-  lcd.setCursor(0, 1);
-  lcd.print(String(dispTemp, 1));
-  lcd.write(223);
-
-  lcd.setCursor(7, 1);
-  lcd.print("        ");
-  lcd.setCursor(7, 1);
-  lcd.print("Hum:");
-  lcd.print(" " + String(dispHum) + "% ");
-
-
-  if(dispHum < 40) {
-      lcd.print("low");
-  } else if(dispHum > 60) {
-      lcd.print("hi ");
-  } else {
-      lcd.print("   ");
-  }
-
-#if (CO2_SENSOR == 1)
-  lcd.setCursor(0, 2);
-  lcd.print(String(dispCO2) + " ppm");
-  if (dispCO2 < 1000) lcd.print(" ");
-#endif
-
-  lcd.setCursor(0, 3);
-  lcd.print("       ");
-  lcd.setCursor(0, 3);
-  lcd.print("P: ");
-  lcd.print(String(dispPres) + "mm  Rain: ");
-  lcd.print(String(dispRain) + "%");
-
-}
 
 void rainPredict() {
     
@@ -169,7 +135,7 @@ void rainPredict() {
 }
 
 void clockTick() {
-     secs++;
+    secs++;
     if (secs > 59) {      // каждую минуту
       secs = 0;
       mins++;
@@ -183,7 +149,13 @@ void clockTick() {
       if (hrs > 23) {
         hrs = 0;
       }
+      #if (DISPLAY_TYPE == 1)
       drawData();
+      #endif
     }
-   drawClock();
+    #if (DISPLAY_TYPE == 1)
+    drawClock();
+    #else
+    drawDateTime();
+    #endif
 }
