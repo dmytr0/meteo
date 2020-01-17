@@ -182,6 +182,7 @@ void setup() {
 
   digitalWrite(L_L, LOW); 
   analogWrite(BACKLIGHT, 50);
+  analogWrite(L_PWM, 240);
 
 #endif
 
