@@ -1,7 +1,7 @@
 
 
 // ------------------------- НАСТРОЙКИ --------------------
-#define RESET_CLOCK 1           // сброс часов на время загрузки прошивки (для модуля с несъёмной батарейкой). Не забудь поставить 0 и прошить ещё раз!
+#define RESET_CLOCK 0           // сброс часов на время загрузки прошивки (для модуля с несъёмной батарейкой). Не забудь поставить 0 и прошить ещё раз!
 #define SENS_TIME 30000         // время обновления показаний сенсоров на экране, миллисекунд
 #define LED_MODE 0              // тип RGB светодиода: 0 - главный катод, 1 - главный анод
 
@@ -37,62 +37,60 @@
 #define BTN_PIN 4
 
 #if (DISPLAY_TYPE == 1)
-#define BACKLIGHT 10            // пин подсветки дисплея
+  #define BACKLIGHT 10            // пин подсветки дисплея
 
-#define LED_COM 7
-#define LED_R 9
-#define LED_G 6
-#define LED_B 5
+  #define LED_COM 7
+  #define LED_R 9
+  #define LED_G 6
+  #define LED_B 5
 
 #else
-#define BACKLIGHT 9             // пин подсветки дисплея
-#define __CS 10
-#define __DC 7
-#define __RES 8
+  #define BACKLIGHT 9             // пин подсветки дисплея
+  #define __CS 10
+  #define __DC 7
+  #define __RES 8
 
-//пины для 74HC595
-#define L_L A0           //защелка           12 ST_CP 
-#define L_D A1           //вход данных       14 DS       
-#define L_C A2           //тактирование      11 SH_CP 
-#define L_PWM 6          //яркость (шим пин) 13 OE       
+  //пины для 74HC595
+  #define L_L A0           //защелка           12 ST_CP 
+  #define L_D A1           //вход данных       14 DS       
+  #define L_C A2           //тактирование      11 SH_CP 
+  #define L_PWM 6          //яркость (шим пин) 13 OE       
 #endif
 
 #if (DISPLAY_TYPE == 0)
-//разметка
-#define CO2_y 30
-#define T_y 55
-#define H_y 80
-#define R_y 105
+  //разметка
+  #define CO2_y 30
+  #define T_y 55
+  #define H_y 80
+  #define R_y 105
 
-//цвета
-#define GREEN   0x07E0
-#define CYAN    0x07FF
-#define BLUE    0x001F
-#define RED     0xF800
-#define YELLOW  0xFFE0
-#define WHITE   0xFFFF
-#define MAGENTA 0xF81F
+  //цвета
+  #define GREEN   0x07E0
+  #define CYAN    0x07FF
+  #define BLUE    0x001F
+  #define RED     0xF800
+  #define YELLOW  0xFFE0
+  #define WHITE   0xFFFF
+  #define MAGENTA 0xF81F
 
 #endif
 
 #if (INVERT_LEVEL == 0)
-#define L_DIRECTION LSBFIRST
+  #define L_DIRECTION LSBFIRST
 #else
-#define L_DIRECTION MSBFIRST
+  #define L_DIRECTION MSBFIRST
 #endif
 
 // библиотеки
 #include <Wire.h>
 
 #if (DISPLAY_TYPE == 1)
-#include <LiquidCrystal_I2C.h>
-
-LiquidCrystal_I2C lcd(DISPLAY_ADDR, 20, 4);
+  #include <LiquidCrystal_I2C.h>
+  LiquidCrystal_I2C lcd(DISPLAY_ADDR, 20, 4);
 #else
-#include <Adafruit_GFX.h>
-#include <TFT_ILI9163C.h>
-
-TFT_ILI9163C display = TFT_ILI9163C(__CS, __DC, __RES);
+  #include <Adafruit_GFX.h>
+  #include <TFT_ILI9163C.h>
+  TFT_ILI9163C display = TFT_ILI9163C(__CS, __DC, __RES);
 #endif
 
 #include "RTClib.h"
@@ -122,7 +120,7 @@ GButton button(BTN_PIN, LOW_PULL, NORM_OPEN);
 byte LED_CURRENT_BRIGHTNESS = 0;
 
 // переменные для вывода
-int8_t hrs, mins, secs;
+int8_t year, month, day, hrs, mins, secs;
 
 float dispTemp;
 byte dispHum;
@@ -155,7 +153,7 @@ static const char *dayNames[]  = {
 
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   pinMode(BACKLIGHT, OUTPUT);
 
 #if (DISPLAY_TYPE == 1)
@@ -180,9 +178,9 @@ void setup() {
   pinMode(L_D, OUTPUT);
   pinMode(L_PWM, OUTPUT);
 
-  digitalWrite(L_L, LOW); 
-  analogWrite(BACKLIGHT, 50);
-  analogWrite(L_PWM, 240);
+  digitalWrite(L_L, LOW);                        // устанавливаем синхронизацию "защелки" на LOW
+  analogWrite(BACKLIGHT, 125);
+  analogWrite(L_PWM, 245);
 
 #endif
 
@@ -190,27 +188,27 @@ void setup() {
 #if (DEBUG == 1)
   boolean status = true;
 
-#if (DISPLAY_TYPE == 1)
-  setLEDinRGB(255, 0, 0);
-#endif
+  #if (DISPLAY_TYPE == 1)
+    setLEDinRGB(255, 0, 0);
+  #endif
 
-#if (CO2_SENSOR == 1)
+  #if (CO2_SENSOR == 1)
 
-  mhz19.begin(MHZ_TX, MHZ_RX);
-  mhz19.setAutoCalibration(false);
-  mhz19.getStatus();    // первый запрос, в любом случае возвращает -1
-  delay(500);
-  if (mhz19.getStatus() == 0) {
-    printDebugMhz("OK");
-  } else {
-    printDebugMhz("ERROR");
-    status = false;
-  }
-#endif
+    mhz19.begin(MHZ_TX, MHZ_RX);
+    mhz19.setAutoCalibration(false);
+    mhz19.getStatus();    // первый запрос, в любом случае возвращает -1
+    delay(500);
+    if (mhz19.getStatus() == 0) {
+      printDebugMhz("OK");
+    } else {
+      printDebugMhz("ERROR");
+      status = false;
+    }
+  #endif
 
-#if (DISPLAY_TYPE == 1)
-  setLEDinRGB(0, 255, 0);
-#endif
+  #if (DISPLAY_TYPE == 1)
+    setLEDinRGB(0, 255, 0);
+  #endif
 
   delay(50);
   if (rtc.begin()) {
@@ -220,9 +218,9 @@ void setup() {
     status = false;
   }
 
-#if (DISPLAY_TYPE == 1)
-  setLEDinRGB(0, 0, 255);
-#endif
+  #if (DISPLAY_TYPE == 1)
+    setLEDinRGB(0, 0, 255);
+  #endif
 
   delay(50);
   if (bme.begin(&Wire)) {
@@ -232,9 +230,9 @@ void setup() {
     status = false;
   }
 
-#if (DISPLAY_TYPE == 1)
-  setLEDinRGB(255, 255, 255);
-#endif
+  #if (DISPLAY_TYPE == 1)
+    setLEDinRGB(255, 255, 255);
+  #endif
 
   if (status) {
     printDebugFinal("All good");
@@ -243,35 +241,39 @@ void setup() {
   }
   delay(2000);
 
-#if (DISPLAY_TYPE == 1)
-  setLEDinRGB(0, 0, 0);
-#endif
+  #if (DISPLAY_TYPE == 1)
+    setLEDinRGB(0, 0, 0);
+  #endif
 
   while (1) {
-#if (DISPLAY_TYPE == 1)
-    lcd.setCursor(14, 1);
-    lcd.print("P:    ");
-    lcd.setCursor(16, 1);
-    lcd.print(analogRead(PHOTO), 1);
+    #if (DISPLAY_TYPE == 1)
+        lcd.setCursor(14, 1);
+        lcd.print("P:    ");
+        lcd.setCursor(16, 1);
+        lcd.print(analogRead(PHOTO), 1);
 
-#else
-    display.setCursor(2, 20);
-    display.print(analogRead(PHOTO));
-#endif
+    #else
+        display.setCursor(2, 20);
+        display.print(analogRead(PHOTO));
+    #endif
 
-    Serial.println(analogRead(PHOTO));
-    delay(300);
+      Serial.println(analogRead(PHOTO));
+      delay(300);
   }
-#else
+#else //NOT DEBUG
 
-#if (CO2_SENSOR == 1)
-  mhz19.begin(MHZ_TX, MHZ_RX);
-  mhz19.setAutoCalibration(false);
-#endif
+  #if (CO2_SENSOR == 1)
+    mhz19.begin(MHZ_TX, MHZ_RX);
+    mhz19.setAutoCalibration(false);
+    mhz19.getStatus();    // первый запрос, в любом случае возвращает -1
+    delay(500);
+  #endif
 
   rtc.begin();
   bme.begin(&Wire);
 #endif
+
+//END DEBUG
 
   bme.setSampling(Adafruit_BME280::MODE_FORCED,
                   Adafruit_BME280::SAMPLING_X1, // temperature
@@ -279,13 +281,26 @@ void setup() {
                   Adafruit_BME280::SAMPLING_X1, // humidity
                   Adafruit_BME280::FILTER_OFF   );
 
-  if (RESET_CLOCK || rtc.lostPower())
-    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+  if (RESET_CLOCK || rtc.lostPower()) {
+    DateTime currentTime = DateTime(F(__DATE__), F(__TIME__));
+    rtc.adjust(currentTime);
+  }
 
   now = rtc.now();
   secs = now.second();
   mins = now.minute();
   hrs = now.hour();
+
+  Serial.println(now.year());
+  delay(100);
+   Serial.println(now.month());
+  delay(100);
+   Serial.println(now.day());
+  delay(100);
+   Serial.println();
+  delay(100);
+   Serial.println();
+  delay(100);
 
   bme.takeForcedMeasurement();
   uint32_t Pressure = bme.readPressure();
@@ -294,18 +309,30 @@ void setup() {
     pressure_array[i] = Pressure;  // забить весь массив текущим давлением
     time_array[i] = i;             // забить массив времени числами 0 - 5
   }
+  
 
-  switchLedBrightness(true);
+  #if (DISPLAY_TYPE == 1)
+    switchLedBrightness(true);
+  #else
+    display.clearScreen();
 
-#if (DISPLAY_TYPE == 1)
+    //names
+    display.setTextSize(2);
+    display.setTextColor(MAGENTA);
+    display.setCursor(2, CO2_y);
+    display.print("CO2:");
+    display.setCursor(2, T_y);
+    display.print("Temp:");
+    display.setCursor(2, H_y);
+    display.print("Hum:");
+    display.setCursor(2, R_y);
+    display.print("Rain:");
+
+    setIndicatorCO2(300);
+  #endif
+
+  drawDate();
   drawClock();
-  drawData();
-#else
-  display.clearScreen();
-  drawDateTime();
-  setIndicatorCO2(400);
-#endif
-
   readSensors();
   drawSensors();
 }

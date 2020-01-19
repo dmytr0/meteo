@@ -1,73 +1,87 @@
 ///// DATE TIME ////////////
 
-#if (DISPLAY_TYPE == 1)
-void drawData() {
-  int dayofweek = now.dayOfTheWeek();
-  lcd.setCursor(10, 0);
-  lcd.print(dayNames[dayofweek]);
-  lcd.print("  ");
 
-  if (now.day() < 10) lcd.print(0);
-  lcd.print(now.day());
-  lcd.print(".");
-  if (now.month() < 10) lcd.print(0);
-  lcd.print(now.month());
+void drawDate() {
+  #if (DISPLAY_TYPE == 1)
+    int dayofweek = now.dayOfTheWeek();
+    lcd.setCursor(10, 0);
+    lcd.print(dayNames[dayofweek]);
+    lcd.print("  ");
 
+    if (day < 10) lcd.print(0);
+    lcd.print(day);
+    lcd.print(".");
+    if (month < 10) lcd.print(0);
+    lcd.print(month);
+  #else
+    clearDate();
+    display.setTextSize(1);
+    display.setTextColor(WHITE);
+    display.setCursor(5, 5);
+
+    delay(50);
+    Serial.println("year " + year);
+    delay(50);
+    Serial.println("month " + month);
+    delay(50);
+    Serial.println("day " + day);
+    delay(50);
+
+    String date = "";
+    if (day < 10) date += 0;
+    date += day + ".";
+    if (month < 10) date += 0;
+    date += month + ".";
+    date += year + " ";
+
+    Serial.println(date);
+    display.println(date);
+  #endif
 }
 
 void drawClock() {
   boolean dotState = (secs % 2) == 0;
+  #if (DISPLAY_TYPE == 1)
+  
+    lcd.setCursor(0, 0);
+    if (hrs < 10) lcd.print(0);
+    lcd.print(hrs);
 
-  lcd.setCursor(0, 0);
-  if (hrs < 10) lcd.print(0);
-  lcd.print(hrs);
+    if (dotState) lcd.print(":");
+    else lcd.print(" ");
 
-  if (dotState) lcd.print(":");
-  else lcd.print(" ");
+    if (mins < 10) lcd.print(0);
+    lcd.print(mins);
 
-  if (mins < 10) lcd.print(0);
-  lcd.print(mins);
+    if (dotState) lcd.print(":");
+    else lcd.print(" ");
 
-  if (dotState) lcd.print(":");
-  else lcd.print(" ");
+    if (secs < 10) lcd.print(0);
+    lcd.print(secs);
+  #else
+    clearTime();
 
-  if (secs < 10) lcd.print(0);
-  lcd.print(secs);
+    display.setTextSize(1);
+    display.setTextColor(WHITE);
+    display.setCursor(80, 5);
+
+     //TIME
+    String dateTime = "";
+    if (hrs < 10) dateTime += 0;
+    dateTime += hrs;
+    if (dotState) dateTime += ":";
+    else dateTime += " ";
+    if (mins < 10) dateTime += 0;
+    dateTime += mins;
+    if (dotState) dateTime += ":";
+    else dateTime += " ";
+    if (secs < 10) dateTime += 0;
+    dateTime += secs;
+
+    Serial.println(dateTime);
+    display.println(dateTime);
+  #endif
 }
-
-#else
-void drawDateTime() {
-
-  display.setTextSize(1);
-  display.setTextColor(WHITE);
-  display.setCursor(35, 5);
-  display.print("                 ");
-  display.setCursor(35, 5);
-
-  //DATE
-  if (now.day() < 10) display.print(0);
-  display.print(now.day());
-  display.print(".");
-  if (now.month() < 10) display.print(0);
-  display.print(now.month());
-  display.print("." + now.year());
-
-  //TIME
-  boolean dotState = (secs % 2) == 0;
-
-  if (hrs < 10) display.print(0);
-  display.print(hrs);
-  if (dotState) display.print(":");
-  else display.print(" ");
-  if (mins < 10) display.print(0);
-  display.print(mins);
-  if (dotState) display.print(":");
-  else display.print(" ");
-  if (secs < 10) display.print(0);
-  display.print(secs);
-}
-
-#endif
 
 
 
@@ -111,18 +125,8 @@ void drawSensors() {
   lcd.print(String(dispRain) + "%");
 #else
 
-  //names
+  clearSensors();
   display.setTextSize(2);
-  display.setTextColor(MAGENTA);
-  display.setCursor(2, CO2_y);
-  display.print("CO2:");
-  display.setCursor(2, T_y);
-  display.print("Temp:");
-  display.setCursor(2, H_y);
-  display.print("Hum:");
-  display.setCursor(2, R_y);
-  display.print("Rain:");
-
   //values
   printCO2();
   printTemp();
@@ -135,6 +139,9 @@ void drawSensors() {
 #if (DISPLAY_TYPE == 0)
 
 void printCO2() {
+  display.setCursor(80, CO2_y);
+  display.print("    ");
+
   if (dispCO2 < 800) {
     display.setTextColor(CYAN);
   } else if (dispCO2 < 1000) {
@@ -143,8 +150,6 @@ void printCO2() {
     display.setTextColor(RED);
   }
 
-  display.setCursor(80, CO2_y);
-  display.print("    ");
   display.setCursor(80, CO2_y);
   display.print(complementLeadingSpaces(dispCO2, 4));
 }
@@ -206,14 +211,31 @@ String complementLeadingSpaces(String strValue, int expected) {
   return strValue;
 }
 
+
+
+void clearSensors() {
+  clearZone(80, 30, 128, 128);
+}
+
+void clearDate() {
+  clearZone(5, 5, 80, 20);
+}
+
+void clearTime() {
+  clearZone(80, 5, 128, 20);
+}
+
+
+void clearZone(int x1, int y1, int x2, int y2) {
+  display.startPushData(x1, y1, x2, y2);
+  int areaLength = (x2 -x1) * (y2-y1);
+  for(int i=0; i < areaLength; i++) {
+      display.pushData(0);
+  }
+  display.endPushData();
+}
+
 #endif
-
-
-
-
-
-
-
 
 
 

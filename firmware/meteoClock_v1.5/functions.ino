@@ -145,17 +145,17 @@ void clockTick() {
     secs = now.second();
     mins = now.minute();
     hrs = now.hour();
+    day = now.day();
+    month = now.month();
+    year = now.year();
 
     if (hrs > 23) {
       hrs = 0;
     }
-#if (DISPLAY_TYPE == 1)
-    drawData();
-#endif
+
+    drawDate();
   }
-#if (DISPLAY_TYPE == 1)
+
+  drawDate();
   drawClock();
-#else
-  drawDateTime();
-#endif
 }

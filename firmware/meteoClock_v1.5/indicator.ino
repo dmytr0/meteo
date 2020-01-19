@@ -24,10 +24,9 @@ void setOneLed(byte pinNumber, byte value) {
 void setIndicatorCO2(int ppm) {
 
   int level = defineLevel(ppm);
-  digitalWrite(L_L, LOW);                        // устанавливаем синхронизацию "защелки" на LOW
   shiftOut(L_D, L_C, L_DIRECTION, level);        // передаем последовательно на dataPin
   digitalWrite(L_L, HIGH);                       //"защелкиваем" регистр, тем самым устанавливая значения на выходах
-  digitalWrite(L_L, LOW);  
+  digitalWrite(L_L, LOW);                        // устанавливаем синхронизацию "защелки" на LOW
 }
 
 int defineLevel(int ppm) {
