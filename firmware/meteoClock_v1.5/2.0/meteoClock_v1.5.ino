@@ -1,23 +1,24 @@
 
 
 // ------------------------- НАСТРОЙКИ --------------------
-#define RESET_CLOCK 0             // сброс часов на время загрузки прошивки (для модуля с несъёмной батарейкой). Не забудь поставить 0 и прошить ещё раз!
-#define SENS_TIME 30000           // время обновления показаний сенсоров на экране, миллисекунд
-
-#define BRIGHT_CONTROL 1          // 0/1 - запретить/разрешить управление яркостью по датчику освещенности (при отключении яркость всегда будет макс.)
-#define BRIGHT_THRESHOLD 64       // величина сигнала, ниже которой яркость переключится на минимум (0-1023)
-#define BRIGHT_CHECK_PERIOD 2000  // Период проверки яркости в миллисекундах  
-
-#define DISPLAY_BRIGHT_MAX 200    // макс яркость дисплея (0 - 255)
-#define DISPLAY_BRIGHT_MIN 0      // мин яркость дисплея (0 - 255)
-
-#define INDICATOR_BRIGHT_MAX 0    // макс яркость индикатора (255 - 0) 0   - maximum
-#define INDICATOR_BRIGHT_MIN 255  // мин яркость индикатора (255 - 0)  255 - minimum
-
-#define DEBUG 0                   // вывод на дисплей лог инициализации датчиков при запуске.
-#define CO2_SENSOR 1              // включить или выключить поддержку/вывод с датчика СО2 (1 вкл, 0 выкл)
-
-#define INVERT_LEVEL 0            // инвертировать показания индикатора
+#define RESET_CLOCK 0                 // сброс часов на время загрузки прошивки (для модуля с несъёмной батарейкой). Не забудь поставить 0 и прошить ещё раз!
+#define SENS_TIME 30000               // время обновления показаний сенсоров на экране, миллисекунд
+    
+#define BRIGHT_CONTROL 1              // 0/1 - запретить/разрешить управление яркостью по датчику освещенности (при отключении яркость всегда будет макс.)
+#define BRIGHT_THRESHOLD 64           // величина сигнала, ниже которой яркость переключится на минимум (0-1023)
+#define BRIGHT_CHECK_PERIOD 2000      // Период проверки яркости в миллисекундах  
+#define F_BRIGHTNESS_DURATION 20000   // Длительность принудительной подсветки в миллисекундах
+    
+#define DISPLAY_BRIGHT_MAX 200        // макс яркость дисплея (0 - 255)
+#define DISPLAY_BRIGHT_MIN 0          // мин яркость дисплея (0 - 255)
+    
+#define INDICATOR_BRIGHT_MAX 0        // макс яркость индикатора (255 - 0) 0   - maximum
+#define INDICATOR_BRIGHT_MIN 255      // мин яркость индикатора (255 - 0)  255 - minimum
+    
+#define DEBUG 0                       // вывод на дисплей лог инициализации датчиков при запуске.
+#define CO2_SENSOR 1                  // включить или выключить поддержку/вывод с датчика СО2 (1 вкл, 0 выкл)
+    
+#define INVERT_LEVEL 0                // инвертировать показания индикатора
 
 
 // адрес BME280 жёстко задан в файле библиотеки Adafruit_BME280.h
@@ -30,20 +31,20 @@
 #define MHZ_RX 2
 #define MHZ_TX 3
 
-#define PHOTO A3                  // пин фоторезистора
-#define BTN_PIN 4                 // пин кнопки
+#define PHOTO A3                      // пин фоторезистора
+#define BTN_PIN 4                     // пин кнопки
 
 //дисплей
-#define BACKLIGHT 9               // пин подсветки дисплея
+#define BACKLIGHT 9                   // пин подсветки дисплея
 #define __CS 10
 #define __DC 7          
 #define __RES 8
 
 //пины для 74HC595
-#define L_L A0           //защелка           12 ST_CP 
-#define L_D A1           //вход данных       14 DS       
-#define L_C A2           //тактирование      11 SH_CP 
-#define L_PWM 6          //яркость (шим пин) 13 OE     
+#define L_L A0                        //защелка           12 ST_CP 
+#define L_D A1                        //вход данных       14 DS       
+#define L_C A2                        //тактирование      11 SH_CP 
+#define L_PWM 6                       //яркость (шим пин) 13 OE     
 
 
 
@@ -102,16 +103,17 @@ GTimer_ms drawSensorsTimer(SENS_TIME);
 GTimer_ms clockTimer(1000);
 GTimer_ms predictTimer((long)10 * 60 * 1000);         // 10 минут
 GTimer_ms brightTimer(BRIGHT_CHECK_PERIOD);
+GTimer_ms forcedBrightnessTimer(F_BRIGHTNESS_DURATION);
 
-// ------------------------- 
+// -------------------------------------------------- 
 
 
 // ------------------------- Переменные определения яркости -------------------------
-byte indicatorCurrBrightness = INDICATOR_BRIGHT_MAX;    // текущая автоматическая яркость индикатора
-byte displayCurrBrightness = DISPLAY_BRIGHT_MAX;        // текущая автоматическая яркость дисплея
-boolean brightnessForced = false                        // Включена ли подсветка вручную на максимум
+byte indicatorCurrBrightness = INDICATOR_BRIGHT_MAX;    // Текущая автоматическая яркость индикатора
+byte displayCurrBrightness = DISPLAY_BRIGHT_MAX;        // Текущая автоматическая яркость дисплея
+boolean brightnessForced = false                        // Включена ли подсветка принудительно на максимум
 
-// переменные для вывода 
+// ------------------------- Переменные для вывода -------------------------
 int8_t year, month, day, hrs, mins, secs;
 float dispTemp;
 byte dispHum;
@@ -119,13 +121,13 @@ int dispPres;
 int dispCO2;
 int dispRain;
 
-// ---- для прогноза  ---- //
+// ------------------------- Переменные для прогноза  ------------------------- //
 uint32_t pressure_array[6];
 uint32_t sumX, sumY, sumX2, sumXY;
 float a, b;
 int delta;
 byte time_array[6];
-// ---- ------------  ---- //
+// ---- -----------------------------------------------------------------  ---- //
 
 
 // ---- Дни недели ---- //
@@ -140,7 +142,7 @@ static const char *dayNames[]  = {
 };
 
 
-// ------------------------- SETUP ------------------------- //
+// -------------------------------------------------- SETUP -------------------------------------------------- //
 
 void setup() {
   Serial.begin(115200);
@@ -158,9 +160,9 @@ void setup() {
   display.clearScreen();
 
   // Инициализация индикатора
-  digitalWrite(L_L, LOW);                        // устанавливаем синхронизацию "защелки" на LOW
-  analogWrite(BACKLIGHT, 125);
-  analogWrite(L_PWM, 245);
+  digitalWrite(L_L, LOW);                         // устанавливаем синхронизацию "защелки" на LOW
+  setDisplayBrightness(DISPLAY_BRIGHT_MAX);       // устанавливаем максимальную яркость дисплея
+  setIndicatorBrightness(INDICATOR_BRIGHT_MAX);   // устанавливаем максимальную яркость индикатора
 
 
   // Инициализация CO2 датчика
@@ -256,7 +258,7 @@ void setup() {
 
   readSensors();
 
-  drawDate();
+  //drawDate();
   drawClock();
   drawSensors();
 }
@@ -265,14 +267,15 @@ void setup() {
 
 
 
-// ------------------------- LOOP ------------------------- //
+// -------------------------------------------------- LOOP -------------------------------------------------- //
 
 void loop() {
-  if (brightTimer.isReady()) checkBrightness();     // яркость
-  if (sensorsTimer.isReady()) readSensors();        // читаем показания датчиков с периодом SENS_TIME
-  if (clockTimer.isReady()) clockTick();            // раз в секунду пересчитываем время и мигаем точками
-  if (predictTimer.isReady()) rainPredict();        // 10 минут прогноз дождя
-  if (drawSensorsTimer.isReady()) drawSensors();    // обновляем показания датчиков на дисплее с периодом SENS_TIME
+  if (brightTimer.isReady()) checkBrightness();                 // яркость
+  if (sensorsTimer.isReady()) readSensors();                    // читаем показания датчиков с периодом SENS_TIME
+  if (clockTimer.isReady()) clockTick();                        // раз в секунду пересчитываем время и мигаем точками
+  if (predictTimer.isReady()) rainPredict();                    // 10 минут прогноз дождя
+  if (drawSensorsTimer.isReady()) drawSensors();                // обновляем показания датчиков на дисплее с периодом SENS_TIME
+  if (forcedBrightnessTimer.isReady()) stopForcedBrightness();  // выключаем принудительную подсветку
 
   modesTick();                                      // ловим нажатия на кнопку и форсируем включение дисплея
 }

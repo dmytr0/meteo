@@ -1,89 +1,51 @@
 void checkBrightness() {
-#if(BRIGHT_CONTROL == 1)
-  if (analogRead(PHOTO) < BRIGHT_THRESHOLD) {   // если темно
-    analogWrite(BACKLIGHT, BRIGHT_MIN);
-    switchLedBrightness(false);
-  } else {                                      // если светло
-    analogWrite(BACKLIGHT, BRIGHT_MAX);
-    switchLedBrightness(true);
-  }
-#endif
+  #if(BRIGHT_CONTROL == 1)
 
-#if(HOURS_BRIGHT_CONTROL == 1)
-  int brightness = defineBrightness();
-  analogWrite(BACKLIGHT, brightness);
-  setLedBrightness(brightness);
+    if(brightnessForced) {
+      setDisplayBrightness(DISPLAY_BRIGHT_MAX);       // устанавливаем максимальную яркость дисплея
+      setIndicatorBrightness(INDICATOR_BRIGHT_MAX);   // устанавливаем максимальную яркость индикатора
 
-  /* if(hrs >= RISE_HOUR && hrs < HOUR_TO_SLEEP){
+    } else {
+      int roomIllumination = analogRead(PHOTO);
 
-     //analogWrite(BACKLIGHT, LCD_BRIGHT_MAX);
-     //switchLedBrightness(true);
-
-     int brightness = defineBrightness();
-     analogWrite(BACKLIGHT, brightness);
-     switchLedBrightness(true);
-
+      byte calculatedDisplayBrightness = map(roomIllumination, BRIGHT_THRESHOLD, 1024, DISPLAY_BRIGHT_MIN, DISPLAY_BRIGHT_MAX);
+      byte calculatedIndicatorBrightness = map(roomIllumination, BRIGHT_THRESHOLD, 1024, INDICATOR_BRIGHT_MIN, INDICATOR_BRIGHT_MAX);
+      
+      setDisplayBrightness(calculatedDisplayBrightness);       
+      setIndicatorBrightness(calculatedIndicatorBrightness);   
     }
-    else if((hrs < RISE_HOUR || hrs >= HOUR_TO_SLEEP)) {
-
-     //analogWrite(BACKLIGHT, LCD_BRIGHT_MIN);
-     //switchLedBrightness(false);
-    }*/
-#endif
-
-}
-
-int defineBrightness() {
-  if (hrs >= RISE_HOUR && hrs < HOUR_TO_SLEEP) {
-    if (hrs == RISE_HOUR) {
-      return map(mins, 0, 60, 0, 255);
-    }
-
-    return BRIGHT_MAX;
-  } else if ((hrs < RISE_HOUR || hrs >= HOUR_TO_SLEEP)) {
-    if (hrs == HOUR_TO_SLEEP) {
-      return map(mins, 0, 60, 255, 0);
-    }
-    return BRIGHT_MIN;
-  }
-}
-
-void switchLedBrightness(boolean isOn) {
-  if (isOn) {
-    setLedBrightness(BRIGHT_MAX);
-  } else {
-    setLedBrightness(BRIGHT_MIN);
-#if (LED_MODE == 0)
-    LED_CURRENT_BRIGHTNESS = (BRIGHT_MIN);
-#else
-    LED_CURRENT_BRIGHTNESS = (255 - BRIGHT_MIN);
-#endif
-  }
-}
-
-void setLedBrightness(int b) {
-#if (LED_MODE == 0)
-  LED_CURRENT_BRIGHTNESS = (b);
-#else
-  LED_CURRENT_BRIGHTNESS = (255 - b);
-#endif
+  #endif
 }
 
 
 void modesTick() {
   button.tick();
   if (button.isClick()) {
+    // Обрабатываем нажатие кнопки включаем максимальную яркость дисплея и индикатора или отключаем этот режим
 
-    if ((LED_MODE == 0 && LED_CURRENT_BRIGHTNESS == BRIGHT_MIN) || (LED_MODE == 1 && LED_CURRENT_BRIGHTNESS == (255 - BRIGHT_MIN))) {
-      switchLedBrightness(true);
+    if (brightnessForced) {
+      stopForcedBrightness();
+    } else {
+      forceBrightness();
     }
-    else {
-      switchLedBrightness(false);
-    }
-    readSensors();
-    drawSensors();
+    
+    //readSensors();
+    //drawSensors();
 
   }
+}
+
+void forceBrightness() {
+  if(!brightnessForced) {
+    brightnessForced = true;
+    forcedBrightnessTimer.reset();
+    forcedBrightnessTimer.start();
+  }
+}
+
+void stopForcedBrightness() {
+  brightnessForced = false;
+  forcedBrightnessTimer.stop();
 }
 
 
@@ -92,10 +54,10 @@ void readSensors() {
   dispTemp = bme.readTemperature();
   dispHum = bme.readHumidity();
   dispPres = (float)bme.readPressure() * 0.00750062;
-#if (CO2_SENSOR == 1)
-  dispCO2 = mhz19.getPPM();
-  setIndicatorCO2(dispCO2);
-#endif
+  #if (CO2_SENSOR == 1)
+    dispCO2 = mhz19.getPPM();
+    setIndicatorCO2(dispCO2);
+  #endif
 }
 
 
@@ -110,27 +72,29 @@ void rainPredict() {
   }
   averPress /= 10;
 
-  for (byte i = 0; i < 5; i++) {                   // счётчик от 0 до 5 (да, до 5. Так как 4 меньше 5)
-    pressure_array[i] = pressure_array[i + 1];     // сдвинуть массив давлений КРОМЕ ПОСЛЕДНЕЙ ЯЧЕЙКИ на шаг назад
+  for (byte i = 0; i < 5; i++) {                    // счётчик от 0 до 5 (да, до 5. Так как 4 меньше 5)
+    pressure_array[i] = pressure_array[i + 1];      // сдвинуть массив давлений КРОМЕ ПОСЛЕДНЕЙ ЯЧЕЙКИ на шаг назад
   }
   pressure_array[5] = averPress;                    // последний элемент массива теперь - новое давление
   sumX = 0;
   sumY = 0;
   sumX2 = 0;
   sumXY = 0;
-  for (int i = 0; i < 6; i++) {                    // для всех элементов массива
+  for (int i = 0; i < 6; i++) {                     // для всех элементов массива
     sumX += time_array[i];
     sumY += (long)pressure_array[i];
     sumX2 += time_array[i] * time_array[i];
     sumXY += (long)time_array[i] * pressure_array[i];
   }
   a = 0;
-  a = (long)6 * sumXY;             // расчёт коэффициента наклона приямой
+  a = (long)6 * sumXY;                              // расчёт коэффициента наклона приямой
   a = a - (long)sumX * sumY;
   a = (float)a / (6 * sumX2 - sumX * sumX);
   delta = a * 6;      // расчёт изменения давления
-  dispRain = map(delta, -250, 250, 100, -100);  // пересчитать в проценты
-  //Serial.println(String(pressure_array[5]) + " " + String(delta) + " " + String(dispRain));   // дебаг
+  dispRain = map(delta, -250, 250, 100, -100);      // пересчитать в проценты
+
+  // Дебаг
+  //Serial.println(String(pressure_array[5]) + " " + String(delta) + " " + String(dispRain));   
 
 }
 
@@ -139,6 +103,7 @@ void clockTick() {
   if (secs > 59) {      // каждую минуту
     secs = 0;
     mins++;
+    drawClock();
   }
   if (mins > 59) {      // каждый час
     now = rtc.now();
@@ -153,9 +118,9 @@ void clockTick() {
       hrs = 0;
     }
 
-    drawDate();
+    //drawDate();
   }
 
-  drawDate();
-  drawClock();
+  //drawDate();
+  //drawClock();
 }

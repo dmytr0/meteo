@@ -1,4 +1,8 @@
-// ------------ Настройка отображения дисплея ------------ //
+void setDisplayBrightness(byte brightness) {
+  analogWrite(BACKLIGHT, brightness);
+}
+
+// ------------------------- Отображения статики ------------------------- //
 
 void drawSensorsGrid() {
   display.clearScreen();
@@ -17,170 +21,94 @@ void drawSensorsGrid() {
 }
 
 
-///// DATE TIME ////////////
-
-
+// ------------------------- DATE TIME ------------------------- //
 void drawDate() {
-  #if (DISPLAY_TYPE == 1)
-    int dayofweek = now.dayOfTheWeek();
-    lcd.setCursor(10, 0);
-    lcd.print(dayNames[dayofweek]);
-    lcd.print("  ");
+  clearDate();
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+  display.setCursor(5, 5);
 
-    if (day < 10) lcd.print(0);
-    lcd.print(day);
-    lcd.print(".");
-    if (month < 10) lcd.print(0);
-    lcd.print(month);
-  #else
-    clearDate();
-    display.setTextSize(1);
-    display.setTextColor(WHITE);
-    display.setCursor(5, 5);
+  String date = "";
+  if (day < 10) date += 0;
+  date += day + ".";
+  if (month < 10) date += 0;
+  date += month + ".";
+  date += year + " ";
 
-    delay(50);
-    Serial.println("year " + year);
-    delay(50);
-    Serial.println("month " + month);
-    delay(50);
-    Serial.println("day " + day);
-    delay(50);
-
-    String date = "";
-    if (day < 10) date += 0;
-    date += day + ".";
-    if (month < 10) date += 0;
-    date += month + ".";
-    date += year + " ";
-
-    Serial.println(date);
-    display.println(date);
-  #endif
+  display.println(date);
 }
 
 void drawClock() {
-  boolean dotState = (secs % 2) == 0;
-  #if (DISPLAY_TYPE == 1)
+  // Переменная может быть использована для моргания двоеточием раз в две секунды
+  //boolean dotState = (secs % 2) == 0; 
   
-    lcd.setCursor(0, 0);
-    if (hrs < 10) lcd.print(0);
-    lcd.print(hrs);
+  clearTime();
 
-    if (dotState) lcd.print(":");
-    else lcd.print(" ");
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+  display.setCursor(95, 5);
 
-    if (mins < 10) lcd.print(0);
-    lcd.print(mins);
+   //TIME
+  String dateTime = "";
+  if (hrs < 10) dateTime += 0;
+  dateTime += hrs;
+  if (dotState) dateTime += ":";
+  else dateTime += " ";
+  if (mins < 10) dateTime += 0;
+  dateTime += mins;
 
-    if (dotState) lcd.print(":");
-    else lcd.print(" ");
+  // -- time without seconds if need: 
+  //1) Change 'display.setCursor(95, 5);' to 'display.setCursor(80, 5);'  
+  //2) In method 'clockTick()' uncomment drackClock() at the bottom
 
-    if (secs < 10) lcd.print(0);
-    lcd.print(secs);
-  #else
-    clearTime();
+  //dateTime += ":";
+  // if (secs < 10) dateTime += 0;
+  // dateTime += secs;
 
-    display.setTextSize(1);
-    display.setTextColor(WHITE);
-    display.setCursor(80, 5);
-
-     //TIME
-    String dateTime = "";
-    if (hrs < 10) dateTime += 0;
-    dateTime += hrs;
-    if (dotState) dateTime += ":";
-    else dateTime += " ";
-    if (mins < 10) dateTime += 0;
-    dateTime += mins;
-    if (dotState) dateTime += ":";
-    else dateTime += " ";
-    if (secs < 10) dateTime += 0;
-    dateTime += secs;
-
-    Serial.println(dateTime);
-    display.println(dateTime);
-  #endif
+  display.println(dateTime);
 }
 
 
-
-
-////// SENSORS /////
-
+// ------------------------- SENSORS ------------------------- //
 void drawSensors() {
-
-
-#if (DISPLAY_TYPE == 1)
-  lcd.setCursor(0, 1);
-  lcd.print(String(dispTemp, 1));
-  lcd.write(223);
-
-  lcd.setCursor(7, 1);
-  lcd.print("        ");
-  lcd.setCursor(7, 1);
-  lcd.print("Hum:");
-  lcd.print(" " + String(dispHum) + "% ");
-
-
-  if (dispHum < 40) {
-    lcd.print("low");
-  } else if (dispHum > 60) {
-    lcd.print("hi ");
-  } else {
-    lcd.print("   ");
-  }
-
-#if (CO2_SENSOR == 1)
-  lcd.setCursor(0, 2);
-  lcd.print(String(dispCO2) + " ppm");
-  if (dispCO2 < 1000) lcd.print(" ");
-#endif
-
-  lcd.setCursor(0, 3);
-  lcd.print("       ");
-  lcd.setCursor(0, 3);
-  lcd.print("P: ");
-  lcd.print(String(dispPres) + "mm  Rain: ");
-  lcd.print(String(dispRain) + "%");
-#else
-
   clearSensors();
+  
+  // print values
   display.setTextSize(2);
-  //values
   printCO2();
   printTemp();
   printHum();
   printRain();
-
-#endif
 }
 
-#if (DISPLAY_TYPE == 0)
 
+// ------ print CO2 value ------ //
 void printCO2() {
   display.setCursor(80, CO2_y);
-  display.print("    ");
+  #if (CO2_SENSOR == 1)
+    if (dispCO2 < 800) {
+      display.setTextColor(CYAN);
+    } else if (dispCO2 < 1000) {
+      display.setTextColor(YELLOW);
+    } else {
+      display.setTextColor(RED);
+    }
 
-  if (dispCO2 < 800) {
-    display.setTextColor(CYAN);
-  } else if (dispCO2 < 1000) {
-    display.setTextColor(YELLOW);
-  } else {
-    display.setTextColor(RED);
-  }
-
-  display.setCursor(80, CO2_y);
-  display.print(complementLeadingSpaces(dispCO2, 4));
+    display.print(complementLeadingSpaces(dispCO2, 4));
+  #else
+    display.setTextColor(WHITE);
+    display.print(complementLeadingSpaces(dispCO2, 4));
+  #endif
 }
 
+// ------ print temerature value ------ //
 void printTemp() {
   display.setTextColor(WHITE);
-  display.setCursor(80, T_y);
-  display.print("   ");
   display.setCursor(80, T_y);
   display.print(complementLeadingSpaces(dispTemp, 3));
 }
 
+// ------ print humidity value ------ //
 void printHum() {
   if (dispHum < 40) {
     display.setTextColor(RED);
@@ -195,6 +123,7 @@ void printHum() {
   display.print(complementLeadingSpaces(dispHum, 2));
 }
 
+// ------ print rain prediction value ------ //
 void printRain() {
   if (dispRain > 10) {
     display.setTextColor(BLUE);
@@ -207,6 +136,10 @@ void printRain() {
   display.print(complementLeadingSpaces(dispRain, 3));
 }
 
+
+
+
+// ------ дополняет лидирующими пробелами для печати ------ //
 String complementLeadingSpaces(int value, int expected) {
   String strValue = String(value);
   return complementLeadingSpaces(strValue, expected);
@@ -229,9 +162,10 @@ String complementLeadingSpaces(String strValue, int expected) {
 
   return strValue;
 }
+// ------------------- END -------------------------------- //
 
 
-
+// ---------------- Очистка старых значений --------------- //
 void clearSensors() {
   clearZone(80, 30, 128, 128);
 }
@@ -244,7 +178,6 @@ void clearTime() {
   clearZone(80, 5, 128, 20);
 }
 
-
 void clearZone(int x1, int y1, int x2, int y2) {
   display.startPushData(x1, y1, x2, y2);
   int areaLength = (x2 -x1) * (y2-y1);
@@ -253,9 +186,7 @@ void clearZone(int x1, int y1, int x2, int y2) {
   }
   display.endPushData();
 }
-
-#endif
-
+// ------------------- END -------------------------------- //
 
 
 
@@ -263,8 +194,8 @@ void clearZone(int x1, int y1, int x2, int y2) {
 
 
 
-////////////////////// DEBUG ///////////////////////
 
+// ------------------------- DEBUG ------------------------- //
 void printDebugMhz(String stat) {
   String message = "MHZ-19... " + stat;
 
