@@ -5,11 +5,14 @@
 #define SENS_TIME 30000               // время обновления показаний сенсоров на экране, миллисекунд
     
 #define BRIGHT_CONTROL 1              // 0/1 - запретить/разрешить управление яркостью по датчику освещенности (при отключении яркость всегда будет макс.)
-#define BRIGHT_THRESHOLD 64           // величина сигнала, ниже которой яркость переключится на минимум (0-1023)
+#define BRIGHT_THRESHOLD 40           // величина сигнала, ниже которой яркость переключится на минимум (0-1023)
+#define BRIGHT_HIGH_THRESHOLD 600           // величина сигнала, ниже которой яркость переключится на минимум (0-1023)
+
+
 #define BRIGHT_CHECK_PERIOD 2000      // Период проверки яркости в миллисекундах  
 #define F_BRIGHTNESS_DURATION 20000   // Длительность принудительной подсветки в миллисекундах
     
-#define DISPLAY_BRIGHT_MAX 200        // макс яркость дисплея (0 - 255)
+#define DISPLAY_BRIGHT_MAX 255        // макс яркость дисплея (0 - 255)
 #define DISPLAY_BRIGHT_MIN 0          // мин яркость дисплея (0 - 255)
     
 #define INDICATOR_BRIGHT_MAX 0        // макс яркость индикатора (255 - 0) 0   - maximum
@@ -65,6 +68,7 @@
 #define YELLOW  0xFFE0
 #define WHITE   0xFFFF
 #define MAGENTA 0xF81F
+#define GREY    0x555555
 
 // ------------------------- No need to change -------------------------
 
@@ -111,7 +115,7 @@ GTimer_ms forcedBrightnessTimer(F_BRIGHTNESS_DURATION);
 // ------------------------- Переменные определения яркости -------------------------
 byte indicatorCurrBrightness = INDICATOR_BRIGHT_MAX;    // Текущая автоматическая яркость индикатора
 byte displayCurrBrightness = DISPLAY_BRIGHT_MAX;        // Текущая автоматическая яркость дисплея
-boolean brightnessForced = false                        // Включена ли подсветка принудительно на максимум
+boolean brightnessForced = false;                       // Включена ли подсветка принудительно на максимум
 
 // ------------------------- Переменные для вывода -------------------------
 int8_t year, month, day, hrs, mins, secs;

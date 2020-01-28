@@ -18,6 +18,13 @@ void drawSensorsGrid() {
   display.print("Hum:");
   display.setCursor(2, R_y);
   display.print("Rain:");
+
+  
+  display.drawFastHLine(0, 15, 127, GREY);
+  display.drawFastHLine(0, CO2_y + 20, 127, GREY);
+  display.drawFastHLine(0, T_y + 20, 127, GREY);
+  display.drawFastHLine(0, H_y + 20, 127, GREY);
+  
 }
 
 
@@ -52,8 +59,7 @@ void drawClock() {
   String dateTime = "";
   if (hrs < 10) dateTime += 0;
   dateTime += hrs;
-  if (dotState) dateTime += ":";
-  else dateTime += " ";
+  dateTime += ":";
   if (mins < 10) dateTime += 0;
   dateTime += mins;
 
@@ -68,7 +74,6 @@ void drawClock() {
   display.println(dateTime);
 }
 
-
 // ------------------------- SENSORS ------------------------- //
 void drawSensors() {
   clearSensors();
@@ -80,7 +85,6 @@ void drawSensors() {
   printHum();
   printRain();
 }
-
 
 // ------ print CO2 value ------ //
 void printCO2() {
@@ -167,15 +171,18 @@ String complementLeadingSpaces(String strValue, int expected) {
 
 // ---------------- Очистка старых значений --------------- //
 void clearSensors() {
-  clearZone(80, 30, 128, 128);
+  clearZone(80, CO2_y, 128, CO2_y + 19);
+  clearZone(80, T_y, 128, T_y + 19);
+  clearZone(80, H_y, 128, H_y + 19);
+  clearZone(80, R_y, 128, R_y + 19);
 }
 
 void clearDate() {
-  clearZone(5, 5, 80, 20);
+  clearZone(5, 5, 80, 14);
 }
 
 void clearTime() {
-  clearZone(80, 5, 128, 20);
+  clearZone(80, 5, 128, 14);
 }
 
 void clearZone(int x1, int y1, int x2, int y2) {

@@ -7,9 +7,15 @@ void checkBrightness() {
 
     } else {
       int roomIllumination = analogRead(PHOTO);
+      roomIllumination = constrain(roomIllumination, BRIGHT_THRESHOLD, BRIGHT_HIGH_THRESHOLD);
 
-      byte calculatedDisplayBrightness = map(roomIllumination, BRIGHT_THRESHOLD, 1024, DISPLAY_BRIGHT_MIN, DISPLAY_BRIGHT_MAX);
-      byte calculatedIndicatorBrightness = map(roomIllumination, BRIGHT_THRESHOLD, 1024, INDICATOR_BRIGHT_MIN, INDICATOR_BRIGHT_MAX);
+      byte calculatedDisplayBrightness = map(roomIllumination, BRIGHT_THRESHOLD, BRIGHT_HIGH_THRESHOLD, DISPLAY_BRIGHT_MIN, DISPLAY_BRIGHT_MAX);
+      byte calculatedIndicatorBrightness = map(roomIllumination, BRIGHT_THRESHOLD, BRIGHT_HIGH_THRESHOLD, INDICATOR_BRIGHT_MIN, INDICATOR_BRIGHT_MAX);
+
+      // For Debug
+      //Serial.println("roomIllumination " + String(roomIllumination));
+      //Serial.println("calculatedDisplayBrightness " + String(calculatedDisplayBrightness));
+      //Serial.println("calculatedIndicatorBrightness " + String(calculatedIndicatorBrightness));
       
       setDisplayBrightness(calculatedDisplayBrightness);       
       setIndicatorBrightness(calculatedIndicatorBrightness);   
