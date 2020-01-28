@@ -23,7 +23,7 @@
 			"file": "firmware/meteoClock_v1.5/display.ino",
 			"settings":
 			{
-				"buffer_size": 5075,
+				"buffer_size": 5636,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -32,7 +32,7 @@
 			"file": "firmware/meteoClock_v1.5/functions.ino",
 			"settings":
 			{
-				"buffer_size": 3796,
+				"buffer_size": 3879,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -50,7 +50,7 @@
 			"file": "firmware/meteoClock_v1.5/meteoClock_v1.5.ino",
 			"settings":
 			{
-				"buffer_size": 8401,
+				"buffer_size": 8809,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -88,10 +88,7 @@
 	},
 	"expanded_folders":
 	[
-		"/dev_drive/Arduino/MeteoClock",
-		"/dev_drive/Arduino/MeteoClock/firmware",
-		"/dev_drive/Arduino/MeteoClock/firmware/meteoClock_v1.5",
-		"/dev_drive/Arduino/MeteoClock/libraries"
+		"/Users/dpolishchuk/IdeaProjects/ARDUINO/meteo"
 	],
 	"file_history":
 	[
@@ -103,7 +100,7 @@
 	],
 	"find":
 	{
-		"height": 55.0
+		"height": 27.0
 	},
 	"find_in_files":
 	{
@@ -154,15 +151,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 5075,
+						"buffer_size": 5636,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								278,
-								278
+								1006,
+								1006
 							]
 						],
 						"settings":
@@ -172,7 +169,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 728.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
@@ -184,15 +181,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 3796,
+						"buffer_size": 3879,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								3793,
-								3793
+								0,
+								0
 							]
 						],
 						"settings":
@@ -202,7 +199,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2201.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 3,
@@ -244,15 +241,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 8401,
+						"buffer_size": 8809,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								3037,
-								3037
+								0,
+								0
 							]
 						],
 						"settings":
@@ -262,7 +259,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 5063.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 1,
@@ -273,7 +270,7 @@
 	],
 	"incremental_find":
 	{
-		"height": 26.0
+		"height": 27.0
 	},
 	"input":
 	{
@@ -342,7 +339,7 @@
 	"project": "meteo.sublime-project",
 	"replace":
 	{
-		"height": 48.0
+		"height": 50.0
 	},
 	"save_all_on_build": true,
 	"select_file":
@@ -380,7 +377,7 @@
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 157.0,
+	"side_bar_width": 260.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{
