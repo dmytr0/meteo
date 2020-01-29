@@ -57,9 +57,11 @@ void stopForcedBrightness() {
 
 void readSensors() {
   bme.takeForcedMeasurement();
+
   dispTemp = bme.readTemperature();
   dispHum = bme.readHumidity();
   dispPres = (float)bme.readPressure() * 0.00750062;
+  // dispAltitude = bme.readAltitude(SEALEVELPRESSURE_HPA);
   #if (CO2_SENSOR == 1)
     dispCO2 = mhz19.getPPM();
     setIndicatorCO2(dispCO2);

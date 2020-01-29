@@ -3,6 +3,9 @@
 	[
 		{
 			"path": "."
+		},
+		{
+			"path": "/Users/dpolishchuk/IdeaProjects/ARDUINO/meteo/libraries"
 		}
 	]
 }
